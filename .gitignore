@@ -1,0 +1,26 @@
+.venv/
+__pycache__/
+.env
+*.db
+node_modules/
+dist/
+.secret_key
+# Node.js (Фронтенд)
+node_modules/
+dist/
+build/
+
+# Python (Бэкенд)
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+env/
+
+# Переменные окружения и секреты
+.env
+.env.local
+
+# Системный мусор
+.DS_Store
+Thumbs.db
