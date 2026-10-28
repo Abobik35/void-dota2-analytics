@@ -26,17 +26,28 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# Путь к собранным файлам фронтенда
-FRONTEND_DIST = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")
+# --- ИСПРАВЛЕННЫЙ БЛОК ДЛЯ РАЗДАЧИ ФРОНТЕНДА ---
+
+# Путь к собранным файлам фронтенда (теперь на одну папку ".." меньше)
+FRONTEND_DIST = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "dist"))
+
+# Выводим в консоль для проверки
+print(f"=== ПУТЬ К ФРОНТЕНДУ: {FRONTEND_DIST} ===")
+print(f"=== ПАПКА СУЩЕСТВУЕТ: {os.path.exists(FRONTEND_DIST)} ===")
 
 # Монтируем статические файлы (если они есть)
 if os.path.exists(FRONTEND_DIST):
-    app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIST, "assets")), name="assets")
+    assets_path = os.path.join(FRONTEND_DIST, "assets")
+    if os.path.exists(assets_path):
+        app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
     
     # Отдаем index.html для всех остальных маршрутов (для React Router)
-    @app.get("/{full_path:path}")
+    # Используем api_route с поддержкой GET и HEAD запросов
+    @app.api_route("/{full_path:path}", methods=["GET", "HEAD"])
     async def serve_react_app(full_path: str):
         return FileResponse(os.path.join(FRONTEND_DIST, "index.html"))
+
 @app.exception_handler(SourceError)
 async def source_error(_: Request, e: SourceError):
     return JSONResponse(status_code=e.status, content={"error": {"code": e.code, "message": e.message}})
+
