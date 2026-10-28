@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+import os
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import auth, compare, debug, matches, players
 from app.core.config import settings
