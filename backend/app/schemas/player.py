@@ -12,6 +12,19 @@ class PlayerProfile(BaseModel):
     lifetime_win_rate: float | None
 
 
+class SearchPlayer(BaseModel):
+    account_id: int
+    name: str
+    avatar: str | None
+    rank_tier: int | None
+    pro: bool          # про-игрок или стример с открытой статистикой
+    rank_name: str | None  # человекочитаемое звание, если известно
+
+
+class SearchOut(BaseModel):
+    players: list[SearchPlayer]
+
+
 class PlayerMatch(BaseModel):
     match_id: int
     start_time: int | None

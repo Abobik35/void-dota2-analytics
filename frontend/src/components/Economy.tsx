@@ -23,9 +23,14 @@ function Bars({ players, side }: { players: Player[]; side: boolean }) {
   );
 }
 
+const money = (v: number) => Math.abs(v) >= 1000 ? `${(v / 1000).toFixed(Math.abs(v) >= 10000 ? 0 : 1)}k` : `${v}`;
+
 export default function Economy({ matchId, players }: { matchId: string; players: Player[] }) {
   const { data, error, isLoading } = useQuery({ queryKey: ["timeline", matchId], queryFn: () => getTimeline(matchId) });
-  const rows = data?.available ? data.minutes.map((m, i) => ({ m, gold: data.gold_adv[i], xp: data.xp_adv[i] })) : [];
+  const rows = data?.available
+    ? data.minutes.map((m, i) => ({ m, gold: data.gold_adv[i], xp: data.xp_adv[i], net: data.net_adv?.[i] }))
+    : [];
+  const hasNet = rows.length > 0 && (data!.net_adv?.length ?? 0) > 0;
   return (
     <>
       <section className="card">
@@ -40,16 +45,21 @@ export default function Economy({ matchId, players }: { matchId: string; players
               <LineChart data={rows} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
                 <CartesianGrid stroke="rgba(255,255,255,.07)" vertical={false} />
                 <XAxis dataKey="m" stroke="#929292" tickFormatter={(v) => `${v}′`} />
-                <YAxis stroke="#929292" tickFormatter={(v) => `${v / 1000}k`} />
+                <YAxis stroke="#929292" tickFormatter={money} />
                 <ReferenceLine y={0} stroke="rgba(255,255,255,.3)" />
                 <Tooltip contentStyle={{ background: "#151515", border: "1px solid rgba(255,255,255,.12)", borderRadius: 8 }}
-                         labelFormatter={(v) => `${v}-я минута`} formatter={(v: number, n) => [v.toLocaleString("ru-RU"), n === "gold" ? "Золото" : "Опыт"]} />
+                         labelFormatter={(v) => `${v}-я минута`}
+                         formatter={(v: number, n) => [`${v.toLocaleString("ru-RU")} золота`,
+                           n === "gold" ? "золотое преим." : n === "net" ? "нетворорт" : "опыт"]} />
                 <Line type="monotone" dataKey="gold" stroke="#a78bfa" strokeWidth={2} dot={false} />
-                {data!.xp_adv.length > 0 && <Line type="monotone" dataKey="xp" stroke="#7a8794" strokeWidth={2} dot={false} />}
+                <Line type="monotone" dataKey="net" stroke="#7dd3fc" strokeWidth={2} dot={false} hide={!hasNet} />
+                <Line type="monotone" dataKey="xp" stroke="#7a8794" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>)}
-        {rows.length > 0 && <p className="muted"><span className="dot v" /> золото <span className="dot g" /> опыт</p>}
+        {rows.length > 0 && (
+          <p className="muted"><span className="dot v" /> золото {hasNet && <><span className="dot b" /> нетворс</>} <span className="dot g" /> опыт</p>
+        )}
       </section>
       <section className="card">
         <h2>Net worth игроков</h2>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { LoaderCircle, TriangleAlert } from "lucide-react";
 import { getParseStatus, requestParse } from "../api";
 
 const EVERY_MS = 10_000;
@@ -33,15 +34,29 @@ export default function ParseBanner({ matchId }: { matchId: string }) {
     } catch (e) { setState("error"); setMsg((e as Error).message); }
   }
 
-  const retry = <button onClick={start}>Повторить запрос</button>;
+  const waiting = state === "polling" || state === "requesting";
+  const progress = state === "polling" ? Math.min(100, Math.round(((tries + 1) / MAX_TRIES) * 100)) : null;
   return (
-    <div className="note parse" aria-live="polite">
-      <p>OpenDota ещё не обработал реплей этого матча: графика по минутам и части показателей нет.</p>
-      {state === "idle" && <button onClick={start}>Запросить обработку</button>}
-      {state === "requesting" && <span>Отправляю запрос…</span>}
-      {state === "polling" && <span>Запрос принят. Жду результат, проверка {tries + 1} из {MAX_TRIES}. Страницу можно не закрывать.</span>}
-      {state === "failed" && <><span>За 3 минуты матч не обработан. Если ему больше недели, реплей, скорее всего, уже удалён у Valve.</span>{retry}</>}
-      {state === "error" && <><span className="err">{msg}</span>{retry}</>}
+    <div className={`note parse${waiting ? " busy" : ""}`} aria-live="polite">
+      <div className="parse-body">
+        <p className="parse-title">
+          {waiting && <LoaderCircle size={16} className="parse-spin" aria-hidden="true" />}
+          {!waiting && state !== "idle" && <TriangleAlert size={16} className="parse-warn" aria-hidden="true" />}
+          <b>Матч не обработан.</b> Без реплея нет графика по минутам, покупок и части метрик.
+        </p>
+        {state === "idle" && <p className="parse-sub">Можно попросить OpenDota распарсить его прямо сейчас — обычно 30–60 секунд.</p>}
+        {state === "requesting" && <p className="parse-sub">Отправляю запрос…</p>}
+        {state === "polling" && (
+          <p className="parse-sub">Жду результат: прошло ≈{tries * 10 + 10} с из ~3 мин · проверка {tries + 1}/{MAX_TRIES}. Страницу можно не закрывать.</p>
+        )}
+        {state === "failed" && <p className="parse-sub">За 3 минуты не обработался. Если матчу больше недели — Valve уже удалил реплей, сценарий не поможет.</p>}
+        {state === "error" && <p className="parse-sub err">{msg}</p>}
+        {progress !== null && (
+          <div className="parse-track" aria-hidden="true"><i style={{ width: `${progress}%` }} /></div>
+        )}
+      </div>
+      {state === "idle" && <button className="parse-btn" onClick={start}>Запросить обработку</button>}
+      {(state === "failed" || state === "error") && <button className="parse-btn" onClick={start}>Попробовать ещё раз</button>}
     </div>
   );
 }

@@ -10,7 +10,7 @@ from app.db.session import Base, engine
 from app.services.opendota.client import SourceError
 
 Base.metadata.create_all(engine)
-app = FastAPI(title="VOID DOTA 2 ANALYTICS", version="0.15.2")
+app = FastAPI(title="VOID DOTA 2 ANALYTICS", version="0.16.0")
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins.split(","),
                    allow_methods=["GET", "POST"], allow_headers=["*"])
 app.include_router(matches.router)

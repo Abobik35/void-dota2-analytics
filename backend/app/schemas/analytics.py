@@ -7,6 +7,7 @@ class Timeline(BaseModel):
     minutes: list[int] = []
     gold_adv: list[int] = []  # >0 — преимущество Radiant
     xp_adv: list[int] = []
+    net_adv: list[int] = []   # разница нетворта Radiant - Dire по минутам
     reason: str | None = None
 
 

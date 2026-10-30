@@ -70,7 +70,26 @@ async def get_timeline(match_id: int = Path(ge=1)):
     if not gold:
         return Timeline(available=False, reason="OpenDota ещё не обработал реплей: данных по минутам нет.")
     return Timeline(available=True, minutes=list(range(len(gold))), gold_adv=gold,
-                    xp_adv=raw.get("radiant_xp_adv") or [])
+                    xp_adv=raw.get("radiant_xp_adv") or [], net_adv=_net_adv(raw.get("players")))
+
+
+def _net_adv(players) -> list[int]:
+    """Разница нетворта команд по минутам. У игроков ряды networth_t бывают разной длины — короткие добираем последним значением."""
+    sides: dict[bool, list[list[int]]] = {True: [], False: []}
+    for p in players or []:
+        series = p.get("networth_t")
+        if isinstance(series, list) and series and all(isinstance(v, (int, float)) for v in series):
+            sides[bool(p.get("player_slot", 0) < 128)].append([int(v) for v in series])
+    if not sides[True] or not sides[False]:
+        return []
+    longest = max(len(s) for s in sides[True] + sides[False])
+
+    def held(series: list[int]) -> list[int]:
+        return series + [series[-1]] * (longest - len(series))
+
+    rad = [sum(s[i] for s in map(held, sides[True])) for i in range(longest)]
+    dire = [sum(s[i] for s in map(held, sides[False])) for i in range(longest)]
+    return [r - d for r, d in zip(rad, dire)]
 
 
 @router.get("/matches/{match_id}/void-rating", response_model=VoidRatingOut)

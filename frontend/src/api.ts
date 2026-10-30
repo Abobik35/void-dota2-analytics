@@ -11,7 +11,7 @@ export interface Match {
   radiant_win: boolean | null; radiant_score: number | null; dire_score: number | null;
   game_mode: number | null; data_status: "full" | "basic"; players: Player[];
 }
-export interface Timeline { available: boolean; minutes: number[]; gold_adv: number[]; xp_adv: number[]; reason: string | null }
+export interface Timeline { available: boolean; minutes: number[]; gold_adv: number[]; xp_adv: number[]; net_adv: number[]; reason: string | null }
 export interface Team {
   side: "radiant" | "dire"; kills: number; deaths: number; assists: number; last_hits: number;
   hero_damage: number; tower_damage: number; hero_healing: number;
@@ -32,6 +32,10 @@ async function get<T>(path: string, method = "GET"): Promise<T> {
 export const getMatch = (id: string) => get<Match>(`/matches/${id}`);
 export const getTimeline = (id: string) => get<Timeline>(`/matches/${id}/timeline`);
 export const getAnalytics = (id: string) => get<Analytics>(`/matches/${id}/analytics`);
+
+export interface SearchPlayer { account_id: number; name: string; avatar: string | null; rank_tier: number | null; pro: boolean; rank_name: string | null }
+export interface SearchOut { players: SearchPlayer[] }
+export const searchPlayers = (q: string) => get<SearchOut>(`/search?q=${encodeURIComponent(q)}`);
 
 export interface RatedPlayer {
   slot: number; is_radiant: boolean; account_id: number | null; name: string | null;
