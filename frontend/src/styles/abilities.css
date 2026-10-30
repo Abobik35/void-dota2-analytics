@@ -1,0 +1,29 @@
+/* ===== Вкладка способностей ===== */
+.ab-team { display: flex; align-items: center; gap: .5rem; margin: 1.1rem 0 .1rem; font: 600 .8rem Inter, sans-serif; letter-spacing: .06em; color: var(--muted); }
+.ab-team:first-child { margin-top: .4rem; }
+.ab-team i { width: 8px; height: 8px; border-radius: 50%; }
+.ab-team.radiant i { background: #4ade80; } .ab-team.dire i { background: #ef4444; }
+
+.ab-row { display: grid; grid-template-columns: 215px minmax(0, 1fr); gap: .9rem; padding: .65rem .2rem; border-top: 1px solid var(--line); align-items: start; }
+.ab-who { display: flex; align-items: center; gap: .55rem; min-width: 0; }
+.ab-who b { display: block; font-weight: 600; font-size: .9rem; }
+.ab-who small { display: block; color: var(--muted); font-size: .76rem; }
+.ab-build { min-width: 0; }
+.ab-none { font-size: .8rem; }
+.ab-note { font-size: .75rem; margin: .1rem 0 .2rem; }
+
+.ab-icons { display: flex; flex-wrap: wrap; gap: 5px; }
+.ab-ic { position: relative; width: 34px; height: 34px; border-radius: 6px; overflow: hidden; background: rgba(255, 255, 255, .05); display: grid; place-items: center; }
+.ab-ic img { display: block; }
+.ab-ic b { position: absolute; right: 0; bottom: 0; font: 700 9px/1 Inter, sans-serif; padding: 1px 3px; border-radius: 4px 0 0;
+  background: rgba(10, 10, 15, .85); color: var(--violet2); }
+.ab-fall { font-size: .5rem; line-height: 1.05; text-align: center; color: var(--muted); padding: 2px; word-break: break-all; overflow: hidden; max-height: 100%; }
+
+.ab-talents { display: flex; flex-wrap: wrap; gap: 5px; margin-top: .5rem; }
+.ab-tal { display: inline-flex; align-items: center; gap: .35rem; padding: .12rem .55rem; border-radius: 999px;
+  border: 1px solid rgba(167, 139, 250, .4); background: rgba(124, 58, 237, .12); font-size: .77rem; color: var(--text); }
+.ab-tal b { color: var(--violet2); font-size: .72rem; }
+
+@media (max-width: 760px) {
+  .ab-row { grid-template-columns: 1fr; gap: .4rem; }
+}

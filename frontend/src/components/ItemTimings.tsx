@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getItemTimings, PlayerTimings, TimedItem } from "../api";
 import { clock } from "../utils";
 import { who } from "./PlayersTable";
+import CdnImg from "./CdnImg";
 
 const EVEN = 60; // секунд: в пределах минуты — «как обычно»
 type Kind = "fast" | "slow" | "even" | "none";
@@ -32,7 +33,7 @@ function Chip({ it, ready }: { it: TimedItem; ready: boolean }) {
   }
   return (
     <div className={`tc ${kind(it.delta)}`} title={tip}>
-      <span className="tc-ico">{it.img && <img src={it.img} alt={it.name} loading="lazy" onError={(e) => { e.currentTarget.style.visibility = "hidden"; }} />}</span>
+      <span className="tc-ico">{it.img && <CdnImg src={it.img} alt={it.name} loading="lazy" onFail={(e) => { e.currentTarget.style.visibility = "hidden"; }} />}</span>
       <span className="tc-txt"><b>{clock(it.time)}</b><small>{short(it.delta)}</small></span>
       {track}
     </div>
@@ -43,7 +44,7 @@ function Row({ p, ready }: { p: PlayerTimings; ready: boolean }) {
   return (
     <div className={`tr ${p.is_radiant ? "rad-row" : "dire-row"}`}>
       <div className="tr-who">
-        {p.hero_img ? <img src={p.hero_img} alt="" width={36} height={20} /> : <span className="noimg" />}
+        {p.hero_img ? <CdnImg src={p.hero_img} alt="" width={36} height={20} /> : <span className="noimg" />}
         <span><b>{p.hero_name}</b><small>{who(p)}</small></span>
       </div>
       <div className="tr-items">

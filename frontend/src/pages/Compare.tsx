@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { Compare, CompareSide, getCompare, getMe } from "../api";
 import RankBadge from "../components/RankBadge";
+import CdnImg from "../components/CdnImg";
 import { parseAccountId } from "../utils";
 
 interface Row { label: string; a: number | null; b: number | null; f: (v: number) => string; lower?: boolean }
@@ -39,7 +40,7 @@ function TopHeroes({ s, title }: { s: CompareSide; title: string }) {
       <h3 className="cp-sub">{title}</h3>
       {s.analytics.top_heroes.slice(0, 5).map((h) => (
         <div key={h.hero_id} className="cp-hero">
-          {h.hero_img ? <img src={h.hero_img} alt="" width={44} height={25} /> : <span className="noimg" />}
+          {h.hero_img ? <CdnImg src={h.hero_img} alt="" width={44} height={25} /> : <span className="noimg" />}
           <b>{h.hero_name}</b><span className="muted">{h.games} матчей · {h.win_rate.toFixed(0)}%</span>
         </div>))}
       {s.analytics.top_heroes.length === 0 && <p className="muted">Нет данных.</p>}
@@ -106,7 +107,7 @@ function Results({ d }: { d: Compare }) {
           <div key={name} className="cp-form-row">
             <span className="cp-form-name">{name}</span>
             <div className="form">{s.analytics.form.map((f) => (
-              <Link key={f.match_id} to={`/match/${f.match_id}`} className={f.won == null ? "u" : f.won ? "w" : "l"} title={f.won == null ? "—" : f.won ? "Победа" : "Поражение"} />))}</div>
+              <Link key={f.match_id} to={`/match/${f.match_id}`} className={f.won == null ? "u" : f.won ? "w" : "l"} title={f.won == null ? "—" : f.won ? "Победа" : "Поражение"}>{f.won == null ? "" : f.won ? "W" : "L"}</Link>))}</div>
           </div>))}
         <p className="muted">Слева — самые новые матчи, зелёный — победа.</p>
       </section>
@@ -118,7 +119,7 @@ function Results({ d }: { d: Compare }) {
             <thead><tr><th>Герой</th><th className="num">{nameA}</th><th className="num">{nameB}</th></tr></thead>
             <tbody>{d.common_heroes.map((h) => (
               <tr key={h.hero_id}>
-                <td><div className="player">{h.hero_img ? <img src={h.hero_img} alt="" width={44} height={25} /> : <span className="noimg" />}<b>{h.hero_name}</b></div></td>
+                <td><div className="player">{h.hero_img ? <CdnImg src={h.hero_img} alt="" width={44} height={25} /> : <span className="noimg" />}<b>{h.hero_name}</b></div></td>
                 <td className="num">{h.a.games} · {h.a.win_rate.toFixed(0)}%</td>
                 <td className="num">{h.b.games} · {h.b.win_rate.toFixed(0)}%</td>
               </tr>))}</tbody>
@@ -141,7 +142,7 @@ export default function ComparePage() {
   const [err, setErr] = useState("");
   const me = useQuery({ queryKey: ["me"], queryFn: getMe, staleTime: 300_000 });
   useEffect(() => { if (!qa && !ia && me.data?.logged_in) setIa(String(me.data.account_id)); }, [me.data]); // eslint-disable-line react-hooks/exhaustive-deps
-  const query = useQuery({ queryKey: ["compare", qa, qb, days], queryFn: () => getCompare(qa, qb, days || undefined), enabled: !!qa && !!qb });
+  const query = useQuery({ queryKey: ["compare", qa, qb, days], queryFn: () => getCompare(qa, qb, days || undefined), enabled: !!qa && !!qb, placeholderData: keepPreviousData });
 
   function submit(e: React.FormEvent) {
     e.preventDefault();

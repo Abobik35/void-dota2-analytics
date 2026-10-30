@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Player } from "../api";
+import CdnImg from "./CdnImg";
 
 type Key = "level" | "kills" | "deaths" | "assists" | "kda" | "kill_participation" | "gpm" | "xpm" | "last_hits" | "denies"
   | "hero_damage" | "tower_damage" | "hero_healing" | "net_worth" | "slot";
@@ -50,7 +51,7 @@ export default function PlayersTable({ players }: { players: Player[] }) {
               <tr key={p.slot} className={p.is_radiant ? "rad-row" : "dire-row"}>
                 <td className="stick">
                   <div className="player">
-                    {p.hero_img ? <img src={p.hero_img} alt="" width={44} height={25} /> : <span className="noimg" />}
+                    {p.hero_img ? <CdnImg src={p.hero_img} alt="" width={44} height={25} /> : <span className="noimg" />}
                     <span><b>{p.hero_name}</b>
                       <small>{p.account_id ? <Link to={`/player/${p.account_id}`}>{who(p)}</Link> : who(p)}</small></span>
                   </div>

@@ -3,14 +3,35 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, Crown } from "lucide-react";
 import { getVoidRating, Mvp, RatedPlayer } from "../api";
 import { Collapse, Disclosure } from "./Collapse";
+import CdnImg from "./CdnImg";
 
-const CATS: [string, string][] = [["combat", "Бой"], ["economy", "Экономика"], ["participation", "Команда"], ["objectives", "Здания"]];
+const CATS: [string, string][] = [["combat", "Бой"], ["economy", "Экономика"], ["participation", "Команда"], ["objectives", "Здания"], ["utility", "Польза"]];
 const ROLE = { core: "Кор", support: "Саппорт", unknown: "Роль не определена" };
 const who = (p: { name: string | null; account_id: number | null }) =>
   p.name ?? (p.account_id ? `Игрок ${p.account_id}` : "Скрытый профиль");
 const mean = (a: number[]) => a.reduce((s, v) => s + v, 0) / a.length;
 const signed = (v: number, d = 0) => `${v > 0 ? "+" : ""}${v.toFixed(d)}`;
 const nonNull = (v: number | null | undefined): v is number => v != null;
+
+const roleLabel = (p: RatedPlayer) => `${ROLE[p.role]}${p.position ? `, поз. ${p.position}` : ""}`;
+const confLevel = (c: number): [string, string] => (c >= 0.75 ? ["high", "высокое"] : c >= 0.5 ? ["mid", "среднее"] : ["low", "низкое"]);
+
+/** Вклад показателей в рейтинг в очках: вправо — плюс, влево — минус; сумма всех вкладов = рейтинг − 50. */
+function Contribs({ items }: { items: RatedPlayer["contributions"] }) {
+  if (!items.length) return null;
+  const top = [...items].sort((a, b) => Math.abs(b.points) - Math.abs(a.points)).slice(0, 8);
+  const max = Math.max(1, ...top.map((c) => Math.abs(c.points)));
+  return (
+    <div className="contribs" aria-label="Вклад показателей в рейтинг, очки">
+      {top.map((c) => (
+        <div key={c.label} className="ct" title={c.detail}>
+          <span className="ct-l">{c.label}</span>
+          <span className="ct-bar" aria-hidden="true"><i className={c.points >= 0 ? "pos" : "neg"} style={{ width: `${(Math.abs(c.points) / max) * 50}%` }} /></span>
+          <b className={c.points >= 0 ? "pos" : "neg"}>{c.points > 0 ? "+" : ""}{c.points.toFixed(1)}</b>
+        </div>))}
+    </div>
+  );
+}
 
 function useReady() {
   const [ready, setReady] = useState(false);
@@ -50,7 +71,7 @@ function MvpCard({ mvp, me, others }: { mvp: Mvp; me: RatedPlayer | undefined; o
     <section className="card mvp2">
       <div className="mvp2-top">
         <div className="mvp2-hero">
-          {mvp.hero_img && <img src={mvp.hero_img} alt="" width={160} height={90} />}
+          {mvp.hero_img && <CdnImg src={mvp.hero_img} alt="" width={160} height={90} />}
           <span className="mvp2-badge"><Crown size={12} />MVP</span>
         </div>
         <div className="mvp2-info">
@@ -86,23 +107,29 @@ function MvpCard({ mvp, me, others }: { mvp: Mvp; me: RatedPlayer | undefined; o
   );
 }
 
-function Rate({ p, rank, isMvp }: { p: RatedPlayer; rank: number; isMvp: boolean }) {
+function Rate({ p, rank, isMvp, cats }: { p: RatedPlayer; rank: number; isMvp: boolean; cats: [string, string][] }) {
   const [open, setOpen] = useState(false);
   const ready = useReady();
   return (
     <div className={`rate ${p.is_radiant ? "rad-row" : "dire-row"}${isMvp ? " is-mvp" : ""}`}>
       <button type="button" className="rate-head" aria-expanded={open} onClick={() => setOpen(!open)}>
         <span className="rank">{rank}</span>
-        {p.hero_img ? <img src={p.hero_img} alt="" width={44} height={25} /> : <span className="noimg" />}
-        <span className="rate-name"><b>{isMvp && <Crown size={14} className="crown" />}{p.hero_name}</b><small>{who(p)} · {ROLE[p.role]}</small></span>
-        <span className="rate-cats">{CATS.map(([k, l]) => (
+        {p.hero_img ? <CdnImg src={p.hero_img} alt="" width={44} height={25} /> : <span className="noimg" />}
+        <span className="rate-name"><b>{isMvp && <Crown size={14} className="crown" />}{p.hero_name}</b><small>{who(p)} · {roleLabel(p)}</small></span>
+        <span className="rate-cats">{cats.map(([k, l]) => (
           <span key={k} title={l}><small>{l}</small>{p.categories[k] == null ? "—" : p.categories[k]!.toFixed(0)}</span>))}</span>
-        <b className="rate-total">{p.rating.toFixed(1)}</b>
+        <span className="rate-score"><b className="rate-total">{p.rating.toFixed(1)}</b><small title="Примерная погрешность оценки">±{Math.round(p.margin)}</small></span>
         <ChevronDown className="chev" size={18} />
         <span className="rate-meter" aria-hidden="true"><i style={{ width: `${ready ? p.rating : 0}%` }} /><b /></span>
       </button>
       <Collapse open={open}>
         <div className="why">
+          <div className="conf">
+            <span className={`conf-pill ${confLevel(p.confidence)[0]}`} title="Зависит от полноты данных, наличия нормы героя, размера группы и длительности матча">
+              Доверие: {confLevel(p.confidence)[1]}</span>
+            <span className="muted">рейтинг {p.rating.toFixed(1)} ± {Math.round(p.margin)}</span>
+          </div>
+          <Contribs items={p.contributions} />
           {p.positives.map((t) => <p key={t} className="pos">+ {t}</p>)}
           {p.negatives.map((t) => <p key={t} className="neg">− {t}</p>)}
           {!p.positives.length && !p.negatives.length && <p className="muted">Показатели близки к среднему для роли.</p>}
@@ -120,6 +147,7 @@ export default function Overview({ matchId }: { matchId: string }) {
   const mvp = data.mvp;
   const me = mvp ? data.players.find((p) => p.slot === mvp.slot) : undefined;
   const others = data.players.filter((p) => p.slot !== mvp?.slot);
+  const cats = data.players.some((p) => p.categories.utility != null) ? CATS : CATS.slice(0, 4);
   return (
     <>
       {mvp && <MvpCard mvp={mvp} me={me} others={others} />}
@@ -128,7 +156,7 @@ export default function Overview({ matchId }: { matchId: string }) {
         <section className="card">
           <h2>VOID Rating игроков</h2>
           <p className="muted">Оценка вклада в этот матч по шкале 0–100, 50 — средний уровень для роли. Не официальный рейтинг Valve.</p>
-          {data.players.map((p, i) => <Rate key={p.slot} p={p} rank={i + 1} isMvp={p.slot === mvp?.slot} />)}
+          {data.players.map((p, i) => <Rate key={p.slot} p={p} rank={i + 1} isMvp={p.slot === mvp?.slot} cats={cats} />)}
           <div className="how">
             <Disclosure title={`Как считается рейтинг (${data.version})`}>
               <ul>{data.limitations.map((l) => <li key={l}>{l}</li>)}</ul>

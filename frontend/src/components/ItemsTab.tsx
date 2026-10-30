@@ -4,18 +4,19 @@ import { clock } from "../utils";
 import { Disclosure } from "./Collapse";
 import ItemTimings from "./ItemTimings";
 import { who } from "./PlayersTable";
+import CdnImg from "./CdnImg";
 
 function Icon({ item, small }: { item: ItemRef | null; small?: boolean }) {
   const title = item ? `${item.name}${item.cost ? ` · ${item.cost} золота` : ""}` : "Пусто";
   return (
     <span className={`item${small ? " sm" : ""}${item ? "" : " empty"}`} title={title}>
-      {item?.img && <img src={item.img} alt={item.name} loading="lazy" onError={(e) => { e.currentTarget.style.visibility = "hidden"; }} />}
+      {item?.img && <CdnImg src={item.img} alt={item.name} loading="lazy" onFail={(e) => { e.currentTarget.style.visibility = "hidden"; }} />}
     </span>
   );
 }
 const Hero = ({ p }: { p: PlayerItems }) => (
   <div className="player">
-    {p.hero_img ? <img src={p.hero_img} alt="" width={44} height={25} /> : <span className="noimg" />}
+    {p.hero_img ? <CdnImg src={p.hero_img} alt="" width={44} height={25} /> : <span className="noimg" />}
     <span><b>{p.hero_name}</b><small>{who(p)}</small></span>
   </div>
 );

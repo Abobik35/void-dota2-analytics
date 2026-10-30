@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 from fastapi import APIRouter, Path
 
 from app.schemas.analytics import MatchAnalytics, Timeline
+from app.schemas.abilities import AbilitiesOut
 from app.schemas.flow import FlowOut
 from app.schemas.items import ItemsOut
 from app.schemas.mistakes import MistakesOut
@@ -13,11 +14,14 @@ from app.schemas.match import MatchOut
 from app.schemas.parse import ParseRequestOut, ParseStatus
 from app.schemas.void_rating import VoidRatingOut
 from app.services.analytics.team import team_analytics
+from app.services.analytics.benchmarks import parse_benchmarks
+from app.services.analytics.void_extras import extract_extras
 from app.services.analytics.void_rating import compute_void_rating
 from app.services.opendota.client import SourceError, fetch_json, invalidate, send_json
-from app.services.opendota.constants import load_item_constants
+from app.services.opendota.constants import load_ability_constants, load_item_constants
 from app.services.opendota.flow import build_flow
 from app.services.opendota.items import build_items
+from app.services.opendota.abilities import build_abilities
 from app.services.opendota.jobs import extract_job_id
 from app.services.opendota.mistakes import build_mistakes
 from app.services.opendota.timings import NOTE, assemble, pick_key_items, summarize_timings
@@ -71,7 +75,22 @@ async def get_timeline(match_id: int = Path(ge=1)):
 
 @router.get("/matches/{match_id}/void-rating", response_model=VoidRatingOut)
 async def get_void_rating(match_id: int = Path(ge=1)):
-    return compute_void_rating(normalize_match(await _raw(match_id), await _heroes()))
+    raw, heroes = await _raw(match_id), await _heroes()
+    match = normalize_match(raw, heroes)
+    sem = asyncio.Semaphore(3)  # бенчмарки героев, кеш на неделю
+
+    async def one(hero_id: int):
+        async with sem:
+            try:
+                data = await fetch_json(f"/benchmarks?{urlencode({'hero_id': hero_id})}",
+                                        lambda d: timedelta(days=7) if d else timedelta(hours=12))
+            except SourceError:
+                return hero_id, None
+        return hero_id, parse_benchmarks(data)
+
+    results = await asyncio.gather(*(one(h) for h in {p.hero_id for p in match.players if p.hero_id}))
+    bench = {h: b for h, b in results if b}
+    return compute_void_rating(match, extract_extras(raw, heroes), bench)
 
 
 _recent_requests: dict[int, float] = {}  # match_id -> время последнего запроса обработки
@@ -114,6 +133,14 @@ async def get_mistakes(match_id: int = Path(ge=1)):
     raw, heroes = await _raw(match_id), await _heroes()
     meta = {p.slot: p.model_dump() for p in normalize_match(raw, heroes).players}
     return MistakesOut(**build_mistakes(raw, heroes, meta))
+
+
+@router.get("/matches/{match_id}/abilities", response_model=AbilitiesOut)
+async def get_abilities(match_id: int = Path(ge=1)):
+    raw, heroes = await _raw(match_id), await _heroes()
+    meta = {p.slot: p.model_dump() for p in normalize_match(raw, heroes).players}
+    ids, consts = await load_ability_constants()
+    return AbilitiesOut(**build_abilities(raw, meta, ids, consts))
 
 
 @router.get("/matches/{match_id}/item-timings", response_model=TimingsOut)

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import RankBadge from "../components/RankBadge";
+import OwnerBadge from "../components/OwnerBadge";
+import CdnImg from "../components/CdnImg";
 import { parseAccountId } from "../utils";
 import { Filters, getHeroes, getMe, getPlayer, getPlayerAnalytics, getPlayerMatches, refreshPlayer } from "../api";
 
@@ -30,12 +32,13 @@ export default function PlayerPage() {
   const filters: Filters = { days: days || undefined, hero_id: hero || undefined };
 
   const profile = useQuery({ queryKey: ["player", accountId], queryFn: () => getPlayer(accountId) });
-  const stats = useQuery({ queryKey: ["player-stats", accountId, filters], queryFn: () => getPlayerAnalytics(accountId, filters) });
+  const stats = useQuery({ queryKey: ["player-stats", accountId, filters], queryFn: () => getPlayerAnalytics(accountId, filters), placeholderData: keepPreviousData });
   const heroes = useQuery({ queryKey: ["heroes"], queryFn: getHeroes, staleTime: 3600_000 });
   const list = useInfiniteQuery({
     queryKey: ["player-matches", accountId, filters],
     queryFn: ({ pageParam }) => getPlayerMatches(accountId, pageParam, filters),
     initialPageParam: 0,
+    placeholderData: keepPreviousData,
     getNextPageParam: (last) => last.next_offset ?? undefined,
   });
 
@@ -53,7 +56,7 @@ export default function PlayerPage() {
       <section className="card player-head">
         {p.avatar && <img src={p.avatar} alt="" width={72} height={72} />}
         <div>
-          <h1>{p.name ?? `Игрок ${p.account_id}`}{me.data?.logged_in && me.data.account_id === p.account_id && <span className="tag win me-tag">Это вы</span>}</h1>
+          <h1>{p.name ?? `Игрок ${p.account_id}`}<OwnerBadge accountId={p.account_id} />{me.data?.logged_in && me.data.account_id === p.account_id && <span className="tag win me-tag">Это вы</span>}</h1>
           <p className="muted">Account ID {p.account_id}{p.mmr_estimate ? ` · оценка MMR ≈ ${p.mmr_estimate}` : ""}</p>
           <Link className="linkish" to={`/compare?a=${p.account_id}`}>Сравнить с другим игроком</Link>
           {" · "}<button type="button" className="linkish" disabled={busy} onClick={onRefresh}>{busy ? "Обновляю…" : "Обновить данные"}</button>
@@ -98,13 +101,13 @@ export default function PlayerPage() {
           <section className="card"><h2>Форма</h2>
             <div className="form">{s.form.map((f) => (
               <Link key={f.match_id} to={`/match/${f.match_id}`} title={result(f.won)}
-                    className={f.won == null ? "u" : f.won ? "w" : "l"} />))}</div>
+                    className={f.won == null ? "u" : f.won ? "w" : "l"}>{f.won == null ? "" : f.won ? "W" : "L"}</Link>))}</div>
             <p className="muted">Слева — самые новые матчи.</p></section>
           <section className="card"><h2>Герои в выборке</h2>
             <div className="scroll"><table><thead><tr><th>Герой</th><th className="num">Матчи</th><th className="num">Победы</th><th className="num">Win rate</th></tr></thead>
               <tbody>{s.top_heroes.map((h) => (
                 <tr key={h.hero_id}><td><div className="player">
-                  {h.hero_img ? <img src={h.hero_img} alt="" width={44} height={25} /> : <span className="noimg" />}<b>{h.hero_name}</b></div></td>
+                  {h.hero_img ? <CdnImg src={h.hero_img} alt="" width={44} height={25} /> : <span className="noimg" />}<b>{h.hero_name}</b></div></td>
                   <td className="num">{h.games}</td><td className="num">{h.wins}</td><td className="num">{pct(h.win_rate)}</td></tr>))}
               </tbody></table></div></section>
         </>)}
@@ -119,7 +122,7 @@ export default function PlayerPage() {
             <tbody>{matches.map((m) => (
               <tr key={m.match_id} className={m.won == null ? "" : m.won ? "rad-row" : "dire-row"}>
                 <td>{result(m.won)}</td>
-                <td><div className="player">{m.hero_img ? <img src={m.hero_img} alt="" width={44} height={25} /> : <span className="noimg" />}<b>{m.hero_name}</b></div></td>
+                <td><div className="player">{m.hero_img ? <CdnImg src={m.hero_img} alt="" width={44} height={25} /> : <span className="noimg" />}<b>{m.hero_name}</b></div></td>
                 <td>{m.start_time ? new Date(m.start_time * 1000).toLocaleDateString("ru-RU") : "—"}</td>
                 <td className="num">{dur(m.duration)}</td><td className="num">{m.kills}/{m.deaths}/{m.assists}</td>
                 <td className="num">{m.kda.toFixed(2)}</td><td className="num">{num(m.gpm)}</td><td className="num">{num(m.xpm)}</td>

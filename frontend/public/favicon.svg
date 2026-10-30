@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Favicon VOID: тёмная черная «дымка» с фиолетовым кольцом, как .mark в шапке -->
+  <defs>
+    <radialGradient id="ring" cx="50%" cy="50%" r="50%">
+      <stop offset="46%" stop-color="#000"/>
+      <stop offset="54%" stop-color="#7c3aed"/>
+      <stop offset="62%" stop-color="#a78bfa"/>
+      <stop offset="80%" stop-color="#7c3aed" stop-opacity=".28"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#080808"/>
+  <circle cx="32" cy="31" r="24" fill="url(#ring)"/>
+</svg>

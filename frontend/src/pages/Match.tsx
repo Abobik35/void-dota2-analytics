@@ -6,6 +6,7 @@ import ParseBanner from "../components/ParseBanner";
 import FlowTab from "../components/FlowTab";
 import MistakesTab from "../components/MistakesTab";
 import ItemsTab from "../components/ItemsTab";
+import AbilitiesTab from "../components/AbilitiesTab";
 import Overview from "../components/Overview";
 import Economy from "../components/Economy";
 import PlayersView from "../components/PlayersView";
@@ -14,7 +15,7 @@ import TeamStats from "../components/TeamStats";
 const time = (s: number | null) => (s == null ? "—" : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`);
 const TABS = [
   ["overview", "Обзор"], ["players", "Игроки"], ["economy", "Экономика"], ["teams", "Командная статистика"],
-  ["items", "Предметы"], ["flow", "Ход матча"], ["mistakes", "Ошибки"],
+  ["items", "Предметы"], ["abilities", "Способности"], ["flow", "Ход матча"], ["mistakes", "Ошибки"],
 ] as const;
 const SOON = new Set<string>();
 const MODES: Record<number, string> = { 1: "All Pick", 2: "Captains Mode", 3: "Random Draft", 4: "Single Draft", 5: "All Random",
@@ -55,6 +56,7 @@ export default function MatchPage() {
       {tab === "economy" && <Economy matchId={matchId} players={data.players} />}
       {tab === "teams" && <TeamStats matchId={matchId} />}
       {tab === "items" && <ItemsTab matchId={matchId} />}
+      {tab === "abilities" && <AbilitiesTab matchId={matchId} />}
       {tab === "flow" && <FlowTab matchId={matchId} />}
       {tab === "mistakes" && <MistakesTab matchId={matchId} />}
       </div>

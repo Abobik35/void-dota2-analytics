@@ -5,6 +5,7 @@ import { Crown } from "lucide-react";
 import { getAnalytics, getVoidRating, Player, Team } from "../api";
 import { fmt, who } from "./PlayersTable";
 import Segmented from "./Segmented";
+import CdnImg from "./CdnImg";
 
 type Key = "level" | "kills" | "deaths" | "assists" | "kda" | "kill_participation" | "gpm" | "xpm" | "last_hits" | "denies"
   | "hero_damage" | "tower_damage" | "hero_healing" | "net_worth";
@@ -87,7 +88,7 @@ export default function PlayersView({ matchId, players, radiantWin }: Props) {
             <div key={p.slot} className={`prow ${side ? "rad-row" : "dire-row"}`} style={{ gridTemplateColumns: tpl }}>
               <div className="pc pc-first">
                 <div className="pc-player">
-                  {p.hero_img ? <img src={p.hero_img} alt="" width={56} height={32} /> : <span className="noimg big" />}
+                  {p.hero_img ? <CdnImg src={p.hero_img} alt="" width={56} height={32} /> : <span className="noimg big" />}
                   <span className="pc-name"><b>{p.hero_name}</b>
                     <small>{p.account_id ? <Link to={`/player/${p.account_id}`}>{who(p)}</Link> : who(p)}</small></span>
                   {rating.has(p.slot) && (

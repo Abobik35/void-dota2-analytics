@@ -4,6 +4,7 @@ import { AlertTriangle, ChevronDown, Info } from "lucide-react";
 import { getMistakes, PlayerMistakes } from "../api";
 import { clock } from "../utils";
 import { Collapse, Disclosure } from "./Collapse";
+import CdnImg from "./CdnImg";
 
 const who = (p: { name: string | null; account_id: number | null }) =>
   p.name ?? (p.account_id ? `Игрок ${p.account_id}` : "Скрытый профиль");
@@ -19,7 +20,7 @@ function Card({ p }: { p: PlayerMistakes }) {
   return (
     <div className={`mi ${p.is_radiant ? "rad-row" : "dire-row"}`}>
       <button type="button" className="mi-head" aria-expanded={open} onClick={() => setOpen(!open)}>
-        {p.hero_img ? <img src={p.hero_img} alt="" width={56} height={32} /> : <span className="noimg big" />}
+        {p.hero_img ? <CdnImg src={p.hero_img} alt="" width={56} height={32} /> : <span className="noimg big" />}
         <span className="mi-name"><b>{p.hero_name}</b><small>{who(p)}</small></span>
         <span className="mi-chips">
           <Chip label="Вне боёв" value={s.solo_deaths ?? 0} hot={(s.solo_deaths ?? 0) >= 3} />

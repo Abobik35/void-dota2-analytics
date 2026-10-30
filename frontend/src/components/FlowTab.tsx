@@ -4,6 +4,7 @@ import { Building2, Coins, Crown, Pause, Play, Swords } from "lucide-react";
 import { EventHero, FlowEvent, getFlow, Side } from "../api";
 import { clock } from "../utils";
 import MatchMap, { Layers, useMapImage } from "./MatchMap";
+import CdnImg from "./CdnImg";
 
 const SIDE: Record<Side, string> = { radiant: "Radiant", dire: "Dire" };
 const TYPES: [FlowEvent["type"], string][] = [["kill", "Убийства"], ["building", "Здания"], ["roshan", "Рошан"], ["buyback", "Бай-бэки"]];
@@ -15,7 +16,7 @@ const ICON = { kill: Swords, building: Building2, roshan: Crown, buyback: Coins 
 
 const Who = ({ h }: { h: EventHero | null }) => h ? (
   <span className={`who ${h.team ?? ""}`}>
-    {h.img && <img src={h.img} alt="" width={26} height={15} loading="lazy" onError={(e) => { e.currentTarget.style.display = "none"; }} />}{h.name}
+    {h.img && <CdnImg src={h.img} alt="" width={26} height={15} loading="lazy" onFail={(e) => { e.currentTarget.style.display = "none"; }} />}{h.name}
   </span>) : null;
 
 function EventRow({ e, onSeek }: { e: FlowEvent; onSeek: (t: number) => void }) {

@@ -36,7 +36,9 @@ export const getAnalytics = (id: string) => get<Analytics>(`/matches/${id}/analy
 export interface RatedPlayer {
   slot: number; is_radiant: boolean; account_id: number | null; name: string | null;
   hero_name: string; hero_img: string | null; role: "core" | "support" | "unknown";
-  rating: number; categories: Record<string, number | null>; completeness: number;
+  position: number | null; rating: number; margin: number; confidence: number;
+  categories: Record<string, number | null>; completeness: number;
+  contributions: { label: string; points: number; detail: string }[];
   positives: string[]; negatives: string[];
 }
 export interface Mvp {
@@ -112,6 +114,14 @@ export interface Flow {
   wards: Ward[]; deaths: MapDeath[]; lane_heat: HeatPoint[]; buildings: BuildingEvent[];
 }
 export const getItems = (id: string) => get<ItemsOut>(`/matches/${id}/items`);
+
+export interface AbilityRef { id: number; key: string | null; name: string; img: string | null; level: number | null }
+export interface PlayerAbilities {
+  slot: number; is_radiant: boolean; hero_name: string; hero_img: string | null; name: string | null; account_id: number | null;
+  abilities: AbilityRef[]; talents: AbilityRef[];
+}
+export interface AbilitiesOut { data_status: "full" | "basic"; players: PlayerAbilities[] }
+export const getAbilities = (id: string) => get<AbilitiesOut>(`/matches/${id}/abilities`);
 export const getFlow = (id: string) => get<Flow>(`/matches/${id}/flow`);
 
 export interface CommonHeroSide { games: number; wins: number; win_rate: number }

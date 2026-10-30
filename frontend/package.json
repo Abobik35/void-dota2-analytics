@@ -1,5 +1,5 @@
 {
-  "name": "void-frontend", "private": true, "version": "0.1.0", "type": "module",
+  "name": "void-frontend", "private": true, "version": "0.15.2", "type": "module",
   "scripts": { "dev": "vite", "build": "tsc && vite build" },
   "dependencies": {
     "@tanstack/react-query": "^5.28.0", "lucide-react": "^0.383.0", "recharts": "^2.12.7",
@@ -10,3 +10,4 @@
     "@vitejs/plugin-react": "^4.3.0", "typescript": "^5.4.5", "vite": "^5.2.0"
   }
 }
+

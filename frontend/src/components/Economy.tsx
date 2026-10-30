@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { getTimeline, Player } from "../api";
 import { fmt, who } from "./PlayersTable";
+import CdnImg from "./CdnImg";
 
 function Bars({ players, side }: { players: Player[]; side: boolean }) {
   const team = players.filter((p) => p.is_radiant === side);
@@ -12,7 +13,7 @@ function Bars({ players, side }: { players: Player[]; side: boolean }) {
       {team.map((p) => (
         <div key={p.slot} className="bar-row" title={`Net worth: ${fmt(p.net_worth)}`}>
           <span className="bar-name">
-            {p.hero_img ? <img src={p.hero_img} alt="" width={44} height={25} loading="lazy" onError={(e) => { e.currentTarget.style.visibility = "hidden"; }} /> : <span className="noimg" />}
+            {p.hero_img ? <CdnImg src={p.hero_img} alt="" width={44} height={25} loading="lazy" onFail={(e) => { e.currentTarget.style.visibility = "hidden"; }} /> : <span className="noimg" />}
             <span className="bar-text"><b>{p.hero_name}</b><small>{who(p)}</small></span>
           </span>
           <span className="bar-track"><i className={side ? "fill-r" : "fill-d"} style={{ width: `${((p.net_worth ?? 0) / max) * 100}%` }} /></span>
