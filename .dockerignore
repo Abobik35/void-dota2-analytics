@@ -1,0 +1,15 @@
+# Сборка docker присылает весь репозиторий: удерживаем копию маленькой
+.venv/
+venv/
+__pycache__/
+*.db
+.env
+.secret_key
+.pytest_cache/
+node_modules/
+dist/
+build/
+backend/static/
+.git/
+VOID-stage2-patch/
+docs/
