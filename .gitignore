@@ -27,3 +27,6 @@ Thumbs.db
 
 # Собранный фронтенд для раздачи одной копией сервера (создаётся при деплое)
 backend/static/
+/toolsgh/ - gh CLI portable
+
+.toolsgh/
